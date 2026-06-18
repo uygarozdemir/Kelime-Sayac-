@@ -1,0 +1,53 @@
+name: Build APK
+
+# Debug APK üretir. Hem otomatik (push) hem de elle (Actions sekmesindeki
+# "Run workflow" butonu) tetiklenebilir.
+on:
+  push:
+    branches:
+      - main
+      - claude/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kodu çek
+        uses: actions/checkout@v4
+
+      - name: JDK 17 kur
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Gradle hazırla
+        uses: gradle/actions/setup-gradle@v4
+
+      # debug.keystore depoya dahil değil (.gitignore). Standart debug
+      # kimlik bilgileriyle (alias/parola: androiddebugkey/android) yeniden
+      # üretiyoruz; build.gradle.kts'teki "debugConfig" bunu bekliyor.
+      - name: Debug keystore oluştur
+        run: |
+          keytool -genkeypair -v \
+            -keystore debug.keystore \
+            -storepass android \
+            -keypass android \
+            -alias androiddebugkey \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Debug APK derle
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: APK'yı artifact olarak yükle
+        uses: actions/upload-artifact@v4
+        with:
+          name: kelime-sayaci-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
