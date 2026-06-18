@@ -20,19 +20,12 @@ class ExampleRobolectricTest {
   }
 
   @Test
-  fun testPdfBoxLoadingInRobolectric() {
-    println("--- ROBOLECTRIC PDFBOX TEST ---")
+  fun pdfBoxInitializesAndStripperWorks() {
     val context = ApplicationProvider.getApplicationContext<Context>()
-    try {
-      com.tom_roush.pdfbox.android.PDFBoxResourceLoader.init(context)
-      println("SUCCESS: PDFBoxResourceLoader initialized in Robolectric!")
-      
-      // Attempt to load PDFTextStripper to verify GlyphList resources etc are solved.
-      val stripper = com.tom_roush.pdfbox.text.PDFTextStripper()
-      println("SUCCESS: PDFTextStripper instantiated! Stripper: $stripper")
-    } catch (e: Throwable) {
-      println("FAILED: Robolectric PDFBox resolution or initialization failed!")
-      e.printStackTrace()
-    }
+    // PDFBox kaynak yükleyicisinin başlatılması ve metin çıkarıcının
+    // örneklenmesi hata fırlatmadan tamamlanmalı.
+    com.tom_roush.pdfbox.android.PDFBoxResourceLoader.init(context)
+    val stripper = com.tom_roush.pdfbox.text.PDFTextStripper()
+    assertEquals(1, stripper.startPage)
   }
 }

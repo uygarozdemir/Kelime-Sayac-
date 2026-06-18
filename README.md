@@ -1,21 +1,45 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Kelime Sayacı
 
-# Run and deploy your AI Studio app
+Android için son derece hafif ve hızlı bir **kelime sayacı** uygulaması.
+PDF, Word (DOCX) ve düz metin (TXT) belgelerindeki kelime sayısını hesaplar.
 
-This contains everything you need to run your app locally.
+> 🔒 **Gizlilik:** Tüm belge işleme tamamen cihaz üzerinde yapılır. Hiçbir
+> dosya veya veri sunucuya gönderilmez; internet bağlantısı gerekmez.
 
-View your app in AI Studio: https://ai.studio/apps/053b5043-d8b6-4114-b27f-723648aa486c
+## Özellikler
 
-## Run Locally
+- 📄 **PDF, DOCX ve TXT** desteği
+- 🔢 Word'e benzeyen kelime sayımı (satır sonu heceleme tireleri birleştirilir)
+- 🕘 Son analizlerin saklandığı **geçmiş** (cihazda yerel olarak)
+- 📤 Sonucu **paylaşma** ve kelime sayısını **kopyalama**
+- 📥 Dosya yöneticisinden "Aç" veya başka uygulamalardan "Paylaş" ile dosya alma
+- 🌙 Material 3 tabanlı, açık/koyu temaya uyumlu arayüz
 
-**Prerequisites:**  [Android Studio](https://developer.android.com/studio)
+## Teknolojiler
 
+- Kotlin + Jetpack Compose (Material 3)
+- MVVM: `AndroidViewModel` + `StateFlow`
+- [PDFBox-Android](https://github.com/TomRoush/PdfBox-Android) (PDF metin çıkarımı)
+- DOCX için yerleşik `XmlPullParser` (ek bağımlılık yok)
 
-1. Open Android Studio
-2. Select **Open** and choose the directory containing this project
-3. Allow Android Studio to fix any incompatibilities as it imports the project.
-4. Create a file named `.env` in the project directory and set `GEMINI_API_KEY` in that file to your Gemini API key (see `.env.example` for an example)
-5. Remove this line from the app's `build.gradle.kts` file: `signingConfig = signingConfigs.getByName("debugConfig")`
-6. Run the app on an emulator or physical device
+## Kurulum ve Çalıştırma
+
+**Gereksinimler:** [Android Studio](https://developer.android.com/studio)
+
+1. Android Studio'yu açın.
+2. **Open** ile bu projeyi seçin ve Gradle senkronizasyonunun tamamlanmasını bekleyin.
+3. Bir emülatör veya fiziksel cihaz seçip **Run** ile çalıştırın.
+
+> Varsayılan olarak `debug` derlemesi, depodaki `debug.keystore` ile imzalanır;
+> ek bir yapılandırma gerekmez.
+
+### Release derlemesi
+
+Release derlemesi R8/ProGuard ile küçültme (`isMinifyEnabled = true`) ve kaynak
+küçültme açık şekilde gelir. İmzalama için aşağıdaki ortam değişkenlerini tanımlayın:
+
+- `KEYSTORE_PATH` (varsayılan: `<proje>/my-upload-key.jks`)
+- `STORE_PASSWORD`
+- `KEY_PASSWORD`
+
+(Anahtar alyası `upload` olarak beklenir.)

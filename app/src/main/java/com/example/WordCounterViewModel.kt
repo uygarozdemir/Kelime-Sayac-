@@ -39,6 +39,24 @@ sealed interface UiState {
     data class Error(val message: String) : UiState
 }
 
+/**
+ * Saf metin istatistik yardımcıları. Android bağımlılığı yoktur, bu sayede
+ * birim testlerinde (host JVM) doğrudan çağrılabilir.
+ */
+object TextStats {
+    // Satır sonlarındaki heceleme tirelerini birleştirir (örn. "kelime-\nsayacı" -> "kelimesayacı").
+    private val hyphenationRegex = Regex("(?<=\\p{L})-[ \t]*\r?\n[ \t]*(?=\\p{L})")
+    private val whitespaceRegex = Regex("[\\s\\p{Z}]+")
+
+    fun countWords(text: String): Int {
+        val cleanedText = text.replace(hyphenationRegex, "")
+        if (cleanedText.isBlank()) return 0
+        return cleanedText.trim()
+            .split(whitespaceRegex)
+            .count { token -> token.any { it.isLetterOrDigit() } }
+    }
+}
+
 class WordCounterViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Idle)
@@ -77,14 +95,16 @@ class WordCounterViewModel(application: Application) : AndroidViewModel(applicat
                             try {
                                 extractTextFromTxt(context, uri)
                             } catch (e: Exception) {
-                                throw IllegalArgumentException("Desteklenmeyen dosya formatı: .$extension. Lütfen PDF, DOCX veya TXT dosyası seçin.")
+                                throw IllegalArgumentException(
+                                    context.getString(R.string.error_unsupported_format, extension)
+                                )
                             }
                         }
                     }
                 }
 
                 if (text.trim().isEmpty() && extension.lowercase() == "pdf") {
-                    throw IllegalStateException("Seçilen PDF dosyasından metin alınamadı. Bu PDF taranmış görsellerden (OCR gerektiren) oluşuyor olabilir.")
+                    throw IllegalStateException(context.getString(R.string.error_pdf_no_text))
                 }
 
                 val stats = calculateStats(fileName, fileSize, extension, text)
@@ -92,9 +112,17 @@ class WordCounterViewModel(application: Application) : AndroidViewModel(applicat
                 saveToHistory(stats)
             } catch (e: Throwable) {
                 Log.e("WordCounter", "Error parsing file", e)
-                _uiState.value = UiState.Error(e.localizedMessage ?: e.message ?: "Dosya analizi sırasında beklenmedik hata oluştu.")
+                _uiState.value = UiState.Error(
+                    e.localizedMessage ?: e.message
+                        ?: getApplication<Application>().getString(R.string.error_unexpected)
+                )
             }
         }
+    }
+
+    /** Geçmişteki bir kaydı tekrar sonuç ekranında gösterir. */
+    fun showHistoryItem(stats: DocumentStats) {
+        _uiState.value = UiState.Success(stats)
     }
 
     private fun getExtension(fileName: String): String {
@@ -102,7 +130,7 @@ class WordCounterViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     private fun queryFileMetadata(context: Context, uri: Uri): Pair<String, Long> {
-        var name = "Seçilen Belge"
+        var name = context.getString(R.string.default_document_name)
         var size = 0L
         try {
             context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
@@ -129,7 +157,7 @@ class WordCounterViewModel(application: Application) : AndroidViewModel(applicat
             val document = PDDocument.load(inputStream, memoryUsageSetting)
             try {
                 if (document.isEncrypted) {
-                    throw Exception("Bu PDF şifreli olduğu için içeriği okunamıyor.")
+                    throw Exception(context.getString(R.string.error_pdf_encrypted))
                 }
                 val stripper = PDFTextStripper()
                 stripper.sortByPosition = true
@@ -137,7 +165,7 @@ class WordCounterViewModel(application: Application) : AndroidViewModel(applicat
             } finally {
                 document.close()
             }
-        } ?: throw Exception("PDF dosyası okunurken hata oluştu (girdi akışı açılamadı).")
+        } ?: throw Exception(context.getString(R.string.error_pdf_open))
     }
 
     private fun extractTextFromDocx(context: Context, uri: Uri): String {
@@ -155,8 +183,17 @@ class WordCounterViewModel(application: Application) : AndroidViewModel(applicat
                     parser.setInput(zipInputStream, "UTF-8")
                     var eventType = parser.eventType
                     while (eventType != XmlPullParser.END_DOCUMENT) {
-                        if (eventType == XmlPullParser.START_TAG && parser.name == "t") {
-                            sb.append(parser.nextText()).append(" ")
+                        if (eventType == XmlPullParser.START_TAG) {
+                            when (parser.name) {
+                                // Metin düğümü
+                                "t" -> sb.append(parser.nextText()).append(" ")
+                                // Sekme ve satır sonu kontrol düğümleri
+                                "tab" -> sb.append("\t")
+                                "br", "cr" -> sb.append("\n")
+                            }
+                        } else if (eventType == XmlPullParser.END_TAG && parser.name == "p") {
+                            // Paragraf sonu
+                            sb.append("\n")
                         }
                         eventType = parser.next()
                     }
@@ -166,33 +203,24 @@ class WordCounterViewModel(application: Application) : AndroidViewModel(applicat
                 entry = zipInputStream.nextEntry
             }
             if (!foundDocumentXml) {
-                throw Exception("Geçersiz Word belgesi: word/document.xml bulunamadı.")
+                throw Exception(context.getString(R.string.error_docx_invalid))
             }
             sb.toString()
-        } ?: throw Exception("Word belgesi okunurken hata oluştu.")
+        } ?: throw Exception(context.getString(R.string.error_docx_open))
     }
 
     private fun extractTextFromTxt(context: Context, uri: Uri): String {
         return context.contentResolver.openInputStream(uri)?.use { inputStream ->
             inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
-        } ?: throw Exception("Metin dosyası okunurken hata oluştu.")
+        } ?: throw Exception(context.getString(R.string.error_txt_open))
     }
 
     private fun calculateStats(fileName: String, fileSize: Long, extension: String, text: String): DocumentStats {
-        // Satır sonlarındaki heceleme tirelerini birleştir
-        val cleanedText = text.replace(Regex("(?<=[A-Za-z])-[ \t]*\r?\n[ \t]*(?=[A-Za-z])"), "")
-
-        // Boşluk karakterlerine göre ayır (Word benzeri sayım)
-        val wordList = cleanedText.trim().split(Regex("[\\s\\p{Z}]+")).filter { token -> 
-            token.any { it.isLetterOrDigit() }
-        }
-        val wordCount = wordList.size
-
         return DocumentStats(
             fileName = fileName,
             fileSizeFormatted = formatFileSize(fileSize),
             fileType = extension.uppercase(),
-            wordCount = wordCount
+            wordCount = TextStats.countWords(text)
         )
     }
 
