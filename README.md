@@ -22,7 +22,20 @@ PDF, Word (DOCX) ve düz metin (TXT) belgelerindeki kelime sayısını hesaplar.
 - [PDFBox-Android](https://github.com/TomRoush/PdfBox-Android) (PDF metin çıkarımı)
 - DOCX için yerleşik `XmlPullParser` (ek bağımlılık yok)
 
-## Kurulum ve Çalıştırma
+## Telefona kurmak için APK indir (en kolayı)
+
+Bilgisayara hiçbir şey kurmadan, hazır bir **debug APK** indirebilirsiniz:
+
+1. **Actions** sekmesine gidin → **Build APK** workflow'unu açın.
+2. En son başarılı çalışmayı seçin → sayfanın altındaki **Artifacts** bölümünden
+   **`kelime-sayaci-debug-apk`**'yı indirin (bir `.zip` iner).
+3. Zip'i açın → içindeki `app-debug.apk` dosyasını telefona kopyalayıp kurun
+   ("bilinmeyen kaynaklardan kuruluma izin ver" demeniz gerekebilir).
+
+> APK, `main`'e her push'ta otomatik üretilir. Workflow'u elle tetiklemek için
+> **Actions → Build APK → Run workflow** kullanabilirsiniz.
+
+## Kaynaktan derleme
 
 **Gereksinimler:** [Android Studio](https://developer.android.com/studio)
 
@@ -30,8 +43,10 @@ PDF, Word (DOCX) ve düz metin (TXT) belgelerindeki kelime sayısını hesaplar.
 2. **Open** ile bu projeyi seçin ve Gradle senkronizasyonunun tamamlanmasını bekleyin.
 3. Bir emülatör veya fiziksel cihaz seçip **Run** ile çalıştırın.
 
-> Varsayılan olarak `debug` derlemesi, depodaki `debug.keystore` ile imzalanır;
-> ek bir yapılandırma gerekmez.
+> `debug` derlemesi için `debug.keystore` depoya dahil değildir (`.gitignore`).
+> Android Studio yerel derlemelerde bunu otomatik üretir; CI ortamında ise
+> [`build-apk.yml`](.github/workflows/build-apk.yml) workflow'u `keytool` ile
+> standart debug kimlik bilgileriyle oluşturur.
 
 ### Release derlemesi
 
