@@ -1,0 +1,40 @@
+name: Build APK
+
+# Debug APK üretir. Hem otomatik (push) hem de elle (Actions sekmesindeki
+# "Run workflow" butonu) tetiklenebilir.
+on:
+  push:
+    branches:
+      - main
+      - claude/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kodu çek
+        uses: actions/checkout@v4
+
+      - name: JDK 17 kur
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Gradle hazırla
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Debug APK derle
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: APK'yı artifact olarak yükle
+        uses: actions/upload-artifact@v4
+        with:
+          name: kelime-sayaci-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
