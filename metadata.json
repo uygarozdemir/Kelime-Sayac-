@@ -1,6 +1,6 @@
 {
   "name": "Kelime Sayacı",
-  "description": "Android için son derece hafif, hızlı PDF ve Word (DOCX) dosyaları için kelime, karakter, cümle ve paragraf sayacı uygulaması.",
+  "description": "Android için son derece hafif ve hızlı; PDF, Word (DOCX) ve TXT dosyaları için kelime sayacı uygulaması. Tüm işlemler tamamen cihaz üzerinde yapılır.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }

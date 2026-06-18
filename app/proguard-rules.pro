@@ -19,3 +19,15 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# PDFBox-Android (com.tom-roush): reflection ve gömülü font/glyph kaynakları
+# kullandığı için R8 ile küçültülürken sınıfları koru.
+-keep class com.tom_roush.** { *; }
+-keep class com.tom_roush.fontbox.** { *; }
+-dontwarn com.tom_roush.**
+
+# PDFBox isteğe bağlı olarak BouncyCastle ve Java AWT sınıflarına referans verir;
+# bunlar Android'de bulunmaz, uyarıları bastır.
+-dontwarn org.bouncycastle.**
+-dontwarn java.awt.**
+-dontwarn javax.imageio.**

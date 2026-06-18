@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -58,8 +59,12 @@ class MainActivity : ComponentActivity() {
     enableEdgeToEdge()
     
     viewModel = ViewModelProvider(this)[WordCounterViewModel::class.java]
-    
-    handleIntent(intent)
+
+    // Yalnızca ilk oluşturmada gelen intent'i işle; ekran döndürme gibi
+    // yeniden oluşturmalarda aynı dosyanın tekrar analiz edilmesini önle.
+    if (savedInstanceState == null) {
+      handleIntent(intent)
+    }
 
     setContent {
       MyApplicationTheme {
@@ -125,7 +130,7 @@ fun WordCounterScreen(viewModel: WordCounterViewModel = viewModel()) {
               modifier = Modifier.size(24.dp).padding(end = 6.dp)
             )
             Text(
-              text = "Kelime Sayacı",
+              text = stringResource(R.string.app_name),
               fontWeight = FontWeight.Medium,
               fontSize = 20.sp,
               fontFamily = FontFamily.SansSerif,
@@ -144,7 +149,7 @@ fun WordCounterScreen(viewModel: WordCounterViewModel = viewModel()) {
             ) {
               Icon(
                 imageVector = Icons.Default.Delete,
-                contentDescription = "Geçmişi Temizle",
+                contentDescription = stringResource(R.string.clear_history),
                 tint = MaterialTheme.colorScheme.error
               )
             }
@@ -203,7 +208,7 @@ fun WordCounterScreen(viewModel: WordCounterViewModel = viewModel()) {
                     modifier = Modifier.padding(end = 12.dp)
                   )
                   Text(
-                    text = "Lütfen kelime sayısını hesaplamak istediğiniz PDF, DOCX veya TXT belgesini seçin. Belge tamamen telefonunuzda güvenle işlenir.",
+                    text = stringResource(R.string.idle_info),
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 18.sp
@@ -234,13 +239,13 @@ fun WordCounterScreen(viewModel: WordCounterViewModel = viewModel()) {
                   )
                   Spacer(modifier = Modifier.height(16.dp))
                   Text(
-                    text = "Belge Analiz Ediliyor...",
+                    text = stringResource(R.string.loading_title),
                     fontWeight = FontWeight.Medium,
                     fontSize = 15.sp,
                     color = MaterialTheme.colorScheme.onSurface
                   )
                   Text(
-                    text = "İçerik taranıyor ve kelimeler hesaplanıyor...",
+                    text = stringResource(R.string.loading_subtitle),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp),
@@ -253,25 +258,29 @@ fun WordCounterScreen(viewModel: WordCounterViewModel = viewModel()) {
               StatsResultView(
                 stats = state.stats,
                 onShare = {
-                  val shareText = """
-                    📄 Belge Analiz Özeti: ${state.stats.fileName}
-                    📊 Boyut: ${state.stats.fileSizeFormatted}
-                    
-                    📝 Kelime Sayısı: ${state.stats.wordCount}
-                    
-                    Kelime Sayacı uygulaması ile analiz edilmiştir.
-                  """.trimIndent()
-                  
+                  val shareText = context.getString(
+                    R.string.share_body,
+                    state.stats.fileName,
+                    state.stats.fileSizeFormatted,
+                    state.stats.wordCount
+                  )
+
                   val intent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
                     putExtra(Intent.EXTRA_TEXT, shareText)
-                    putExtra(Intent.EXTRA_SUBJECT, "Belge Kelime Analiz Raporu")
+                    putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.share_subject))
                   }
-                  context.startActivity(Intent.createChooser(intent, "Raporu Paylaş"))
+                  context.startActivity(
+                    Intent.createChooser(intent, context.getString(R.string.share_chooser_title))
+                  )
                 },
                 onCopy = {
                   clipboardManager.setText(AnnotatedString(state.stats.wordCount.toString()))
-                  Toast.makeText(context, "Kelime sayısı kopyalandı: ${state.stats.wordCount}", Toast.LENGTH_SHORT).show()
+                  Toast.makeText(
+                    context,
+                    context.getString(R.string.word_count_copied, state.stats.wordCount),
+                    Toast.LENGTH_SHORT
+                  ).show()
                 },
                 onReset = {
                   viewModel.resetState()
@@ -299,13 +308,13 @@ fun WordCounterScreen(viewModel: WordCounterViewModel = viewModel()) {
                   ) {
                     Icon(
                       imageVector = Icons.Default.Warning,
-                      contentDescription = "Hata",
+                      contentDescription = stringResource(R.string.error_label),
                       tint = MaterialTheme.colorScheme.error,
                       modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                      text = "Analiz Başarısız Oldu",
+                      text = stringResource(R.string.analysis_failed),
                       fontWeight = FontWeight.Bold,
                       fontSize = 15.sp,
                       color = MaterialTheme.colorScheme.onErrorContainer
@@ -326,7 +335,7 @@ fun WordCounterScreen(viewModel: WordCounterViewModel = viewModel()) {
                     ),
                     modifier = Modifier.align(Alignment.End)
                   ) {
-                    Text("Geri Dön", color = Color.White)
+                    Text(stringResource(R.string.go_back), color = Color.White)
                   }
                 }
               }
@@ -346,13 +355,13 @@ fun WordCounterScreen(viewModel: WordCounterViewModel = viewModel()) {
             horizontalArrangement = Arrangement.SpaceBetween
           ) {
             Text(
-              text = "Son Analizler (Geçmiş)",
+              text = stringResource(R.string.history_title),
               fontWeight = FontWeight.Bold,
               fontSize = 16.sp,
               color = MaterialTheme.colorScheme.primary
             )
             Text(
-              text = "${history.size} dosya",
+              text = stringResource(R.string.file_count, history.size),
               fontSize = 12.sp,
               color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -364,12 +373,8 @@ fun WordCounterScreen(viewModel: WordCounterViewModel = viewModel()) {
           HistoryItemCard(
             stats = stats,
             onClick = {
-              // Click to reload standard success metrics view
-              viewModel.resetState()
-              viewModel.analyzeFile(Uri.EMPTY) // trigger update
-              // To load this item: since uiState is just standard state flow, 
-              // we can simply inject this item back as current success!
-              // Let me implement a quick method or mock loader
+              // Geçmiş kaydını tekrar sonuç ekranında göster
+              viewModel.showHistoryItem(stats)
             },
             onDelete = {
               viewModel.deleteHistoryItem(stats)
@@ -426,16 +431,16 @@ fun FileDropZoneCard(onClick: () -> Unit) {
       Spacer(modifier = Modifier.height(14.dp))
       
       Text(
-        text = "Belge Seçmek için Dokunun",
+        text = stringResource(R.string.picker_title),
         fontWeight = FontWeight.Medium,
         fontSize = 16.sp,
         color = MaterialTheme.colorScheme.onSurface
       )
-      
+
       Spacer(modifier = Modifier.height(4.dp))
-      
+
       Text(
-        text = "PDF, DOCX veya TXT belgesi seçebilirsiniz",
+        text = stringResource(R.string.picker_subtitle),
         fontSize = 12.sp,
         color = MaterialTheme.colorScheme.onSurfaceVariant
       )
@@ -557,7 +562,7 @@ fun StatsResultView(
         IconButton(onClick = onReset) {
           Icon(
             imageVector = Icons.Default.Refresh,
-            contentDescription = "Yeni Belge",
+            contentDescription = stringResource(R.string.new_document),
             tint = MaterialTheme.colorScheme.onSurfaceVariant
           )
         }
@@ -583,7 +588,7 @@ fun StatsResultView(
         lineHeight = 1.sp
       )
       Text(
-        text = "KELİME SAYILDI",
+        text = stringResource(R.string.word_counted),
         fontSize = 14.sp,
         fontWeight = FontWeight.SemiBold,
         letterSpacing = 1.5.sp,
@@ -606,7 +611,7 @@ fun StatsResultView(
         )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
-          text = "Kopyalamak için dokunun",
+          text = stringResource(R.string.tap_to_copy),
           fontSize = 11.sp,
           color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -628,54 +633,7 @@ fun StatsResultView(
     ) {
       Icon(imageVector = Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
       Spacer(modifier = Modifier.width(8.dp))
-      Text("Analiz Raporunu Paylaş", fontWeight = FontWeight.Medium, fontSize = 14.sp)
-    }
-  }
-}
-
-@Composable
-fun StatCard(
-  title: String,
-  value: String,
-  icon: androidx.compose.ui.graphics.vector.ImageVector,
-  modifier: Modifier = Modifier
-) {
-  Card(
-    modifier = modifier,
-    shape = RoundedCornerShape(16.dp),
-    colors = CardDefaults.cardColors(
-      containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-    ),
-    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-  ) {
-    Column(
-      modifier = Modifier.padding(16.dp)
-    ) {
-      Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
-      ) {
-        Icon(
-          imageVector = icon,
-          contentDescription = null,
-          tint = MaterialTheme.colorScheme.primary,
-          modifier = Modifier.size(14.dp)
-        )
-        Text(
-          text = title.uppercase(Locale.getDefault()),
-          fontSize = 11.sp,
-          fontWeight = FontWeight.SemiBold,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-          letterSpacing = 0.5.sp
-        )
-      }
-      Spacer(modifier = Modifier.height(8.dp))
-      Text(
-        text = value,
-        fontSize = 20.sp,
-        fontWeight = FontWeight.Normal,
-        color = MaterialTheme.colorScheme.onSurface
-      )
+      Text(stringResource(R.string.share_report), fontWeight = FontWeight.Medium, fontSize = 14.sp)
     }
   }
 }
@@ -771,7 +729,7 @@ fun HistoryItemCard(
           color = MaterialTheme.colorScheme.primary
         )
         Text(
-          text = "kelime",
+          text = stringResource(R.string.word_unit),
           fontSize = 10.sp,
           color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -783,7 +741,7 @@ fun HistoryItemCard(
       ) {
         Icon(
           imageVector = Icons.Default.Clear,
-          contentDescription = "Sil",
+          contentDescription = stringResource(R.string.delete),
           tint = MaterialTheme.colorScheme.onSurfaceVariant,
           modifier = Modifier.size(16.dp)
         )
