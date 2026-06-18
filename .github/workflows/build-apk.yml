@@ -29,6 +29,19 @@ jobs:
       - name: Gradle hazırla
         uses: gradle/actions/setup-gradle@v4
 
+      # debug.keystore depoya dahil değil (.gitignore). Standart debug
+      # kimlik bilgileriyle (alias/parola: androiddebugkey/android) yeniden
+      # üretiyoruz; build.gradle.kts'teki "debugConfig" bunu bekliyor.
+      - name: Debug keystore oluştur
+        run: |
+          keytool -genkeypair -v \
+            -keystore debug.keystore \
+            -storepass android \
+            -keypass android \
+            -alias androiddebugkey \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
       - name: Debug APK derle
         run: ./gradlew assembleDebug --stacktrace
 
