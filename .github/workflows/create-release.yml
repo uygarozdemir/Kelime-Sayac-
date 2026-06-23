@@ -1,0 +1,65 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*' # v1.0.0, v1.1.0 gibi etiketler pushlandığında tetiklenir
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kodu çek
+        uses: actions/checkout@v4
+
+      - name: JDK 17 kur
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Gradle hazırla
+        uses: gradle/actions/setup-gradle@v4
+
+      # debug.keystore'u üretiyoruz
+      - name: Debug keystore oluştur
+        run: |
+          keytool -genkeypair -v \
+            -keystore debug.keystore \
+            -storepass android \
+            -keypass android \
+            -alias androiddebugkey \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Debug APK derle
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: APK dosyasını yeniden adlandır
+        run: |
+          mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/Kelime-Sayaci-${{ github.ref_name }}.apk
+
+      - name: GitHub Release Oluştur ve APK Yükle
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app/build/outputs/apk/debug/Kelime-Sayaci-${{ github.ref_name }}.apk
+          name: Sürüm ${{ github.ref_name }}
+          body: |
+            Kelime Sayacı uygulamasının ${{ github.ref_name }} sürümü başarıyla yayınlandı.
+            
+            ### 🌟 Özellikler ve Yenilikler:
+            * **Güvenli ve Yerel:** PDF, DOCX ve TXT belgeleriniz tamamen kendi cihazınızda analiz edilir. Verileriniz internete veya herhangi bir sunucuya gönderilmez.
+            * **Doğru Hesaplama:** Satır sonlarındaki heceleme tireleri akıllıca algılanır ve birleştirilerek kelime sayıları doğru hesaplanır.
+            * **Geçmiş:** Son yaptığınız analizler cihazınızda saklanır, dilediğiniz zaman tekrar görüntüleyebilir veya temizleyebilirsiniz.
+            * **Kolay Paylaşım:** Hesaplanan kelime sayılarını tek tıkla kopyalayabilir veya diğer uygulamalarla paylaşabilirsiniz.
+            
+            ### 📲 Kurulum:
+            Aşağıdaki **Kelime-Sayaci-${{ github.ref_name }}.apk** dosyasını doğrudan telefonunuza indirip kurabilirsiniz. (Kurulum sırasında "Bilinmeyen kaynaklardan yüklemeye izin ver" seçeneğini aktif etmeniz gerekebilir.)
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

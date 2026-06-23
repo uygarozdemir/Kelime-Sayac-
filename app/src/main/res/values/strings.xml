@@ -1,0 +1,51 @@
+<resources>
+    <string name="app_name">Kelime Sayacı</string>
+
+    <!-- Üst çubuk -->
+    <string name="clear_history">Geçmişi Temizle</string>
+
+    <!-- Boş durum / bilgi -->
+    <string name="idle_info">Lütfen kelime sayısını hesaplamak istediğiniz PDF, DOCX veya TXT belgesini seçin. Belge tamamen telefonunuzda güvenle işlenir.</string>
+
+    <!-- Yükleniyor -->
+    <string name="loading_title">Belge Analiz Ediliyor…</string>
+    <string name="loading_subtitle">İçerik taranıyor ve kelimeler hesaplanıyor…</string>
+
+    <!-- Sonuç -->
+    <string name="word_counted">KELİME SAYILDI</string>
+    <string name="tap_to_copy">Kopyalamak için dokunun</string>
+    <string name="share_report">Analiz Raporunu Paylaş</string>
+    <string name="new_document">Yeni Belge</string>
+    <string name="word_count_copied">Kelime sayısı kopyalandı: %1$d</string>
+
+    <!-- Paylaşım -->
+    <string name="share_subject">Belge Kelime Analiz Raporu</string>
+    <string name="share_chooser_title">Raporu Paylaş</string>
+    <string name="share_body">📄 Belge Analiz Özeti: %1$s\n📊 Boyut: %2$s\n\n📝 Kelime Sayısı: %3$d\n\nKelime Sayacı uygulaması ile analiz edilmiştir.</string>
+
+    <!-- Hata -->
+    <string name="analysis_failed">Analiz Başarısız Oldu</string>
+    <string name="go_back">Geri Dön</string>
+    <string name="error_label">Hata</string>
+
+    <!-- Geçmiş -->
+    <string name="history_title">Son Analizler (Geçmiş)</string>
+    <string name="file_count">%1$d dosya</string>
+    <string name="delete">Sil</string>
+    <string name="word_unit">kelime</string>
+
+    <!-- Dosya seçici -->
+    <string name="picker_title">Belge Seçmek için Dokunun</string>
+    <string name="picker_subtitle">PDF, DOCX veya TXT belgesi seçebilirsiniz</string>
+
+    <!-- ViewModel hata mesajları -->
+    <string name="default_document_name">Seçilen Belge</string>
+    <string name="error_unsupported_format">Desteklenmeyen dosya formatı: .%1$s. Lütfen PDF, DOCX veya TXT dosyası seçin.</string>
+    <string name="error_pdf_no_text">Seçilen PDF dosyasından metin alınamadı. Bu PDF taranmış görsellerden (OCR gerektiren) oluşuyor olabilir.</string>
+    <string name="error_pdf_encrypted">Bu PDF şifreli olduğu için içeriği okunamıyor.</string>
+    <string name="error_pdf_open">PDF dosyası okunurken hata oluştu (girdi akışı açılamadı).</string>
+    <string name="error_docx_invalid">Geçersiz Word belgesi: word/document.xml bulunamadı.</string>
+    <string name="error_docx_open">Word belgesi okunurken hata oluştu.</string>
+    <string name="error_txt_open">Metin dosyası okunurken hata oluştu.</string>
+    <string name="error_unexpected">Dosya analizi sırasında beklenmedik hata oluştu.</string>
+</resources>
