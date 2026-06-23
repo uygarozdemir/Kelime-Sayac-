@@ -24,16 +24,13 @@ PDF, Word (DOCX) ve düz metin (TXT) belgelerindeki kelime sayısını hesaplar.
 
 ## Telefona kurmak için APK indir (en kolayı)
 
-Bilgisayara hiçbir şey kurmadan, hazır bir **debug APK** indirebilirsiniz:
+Bilgisayara hiçbir şey kurmadan, doğrudan hazır derlenmiş **APK** dosyasını indirip kurabilirsiniz:
 
-1. **Actions** sekmesine gidin → **Build APK** workflow'unu açın.
-2. En son başarılı çalışmayı seçin → sayfanın altındaki **Artifacts** bölümünden
-   **`kelime-sayaci-debug-apk`**'yı indirin (bir `.zip` iner).
-3. Zip'i açın → içindeki `app-debug.apk` dosyasını telefona kopyalayıp kurun
-   ("bilinmeyen kaynaklardan kuruluma izin ver" demeniz gerekebilir).
+1. Deponun sağ tarafındaki **[Releases](https://github.com/uygarozdemir/Kelime-Sayac-/releases)** (Sürümler) bölümüne gidin.
+2. En son yayınlanan sürümün (örneğin `v1.0.0`) altındaki **`Kelime-Sayaci-vX.Y.Z.apk`** dosyasını telefonunuza indirin.
+3. İndirdiğiniz `.apk` dosyasını çalıştırarak kurulumu tamamlayın (telefonunuz "bilinmeyen kaynaklardan kuruluma izin ver" uyarısı gösterebilir, onaylayarak ilerleyin).
 
-> APK, `main`'e her push'ta otomatik üretilir. Workflow'u elle tetiklemek için
-> **Actions → Build APK → Run workflow** kullanabilirsiniz.
+> ⚙️ **Sürüm Otomasyonu:** Her yeni sürüm etiketi (`v*`) gönderildiğinde GitHub Actions uygulamayı bulutta otomatik olarak derler ve yeni APK dosyasını doğrudan bir sürüm olarak deponuza ekler.
 
 ## Kaynaktan derleme
 
